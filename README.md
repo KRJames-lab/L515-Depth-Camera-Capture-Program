@@ -9,13 +9,12 @@ This program is a C++ application that captures and saves depth maps and color i
 - YAML-based configuration file
 - Parallel processing optimization using OpenMP
 - Direct memory access option
-- Infrared and confidence stream support (L515 exclusive)
 
 ## System Requirements
 
 - C++14 compatible compiler or higher
 - CMake 3.10 or higher
-- librealsense2 SDK (version 2.50.0 or higher recommended)
+- librealsense2 SDK [(version 2.35.2 recommended)](https://dev.intelrealsense.com/docs/firmware-update-tool)
 - OpenCV library (version 4.0 or higher recommended)
 - YAML-CPP library
 - OpenMP compatible compiler
@@ -24,8 +23,8 @@ This program is a C++ application that captures and saves depth maps and color i
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/username/l515-depth-capture.git
-cd l515-depth-capture
+git clone https://github.com/KRJames-lab/L515-Depth-Camera-Capture-Program.git
+cd L515-Depth-Camera-Capture-Program
 
 # 2. Create a build directory
 mkdir build && cd build
@@ -65,17 +64,11 @@ num_threads: 8       # Number of OpenMP threads to use
 
 All configuration options are detailed in the `depth_config.yaml` file.
 
-## Code Structure
-
-- **load_config.h/cpp**: Configuration related classes and functions
-- **camera.h/cpp**: RealSense camera related classes and functions
-- **processor.h/cpp**: Depth data processing and storage related classes
-- **main.cpp**: Main program logic
+**Get enable settings with command "rs-enumerate-devices"**
 
 ## Notes
 
 - Ensure the RealSense L515 camera is connected before running the program.
-- Other RealSense models will also work, but some special features (e.g., confidence stream) are exclusive to the L515.
 - For optimal performance, connect the camera to a USB 3.0/3.1 port.
 
 ## License
