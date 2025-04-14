@@ -85,6 +85,16 @@ These options allow you to optimize depth quality for different environments and
 
 Please refer to the [**User Guide**](https://support.intelrealsense.com/hc/en-us/articles/360051646094-Intel-RealSense-LiDAR-Camera-L515-User-Guide) for more information.
 
+## Development Environment
+
+This project was developed and tested on the following environment:
+
+- **Hardware**: NVIDIA Jetson Orin NX 16GB
+- **Operating System**: Ubuntu 22.04
+- **Jetpack**: 6.0 (L4T 36.3.0)
+- **Camera**: Intel RealSense L515
+- **SDK**: Intel RealSense SDK 2.35.2 
+
 ## Notes
 
 - Ensure the RealSense L515 camera is connected before running the program.
