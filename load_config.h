@@ -34,8 +34,10 @@ public:
     bool saveDepthRaw() const { return save_depth_raw; }
     bool saveDepthBinary() const { return save_depth_binary; }
     bool saveInfrared() const { return save_infrared; }
+    bool saveDepthCsv() const { return save_depth_csv; }
     int getCsvSamplingStep() const { return csv_sampling_step; }
     std::string getBinaryFilename() const { return binary_filename; }
+
     
     // rs2_format conversion
     rs2_format getDepthRs2Format() const;
@@ -77,6 +79,7 @@ private:
     bool save_depth_raw = false;
     bool save_depth_binary = true;
     bool save_infrared = false;
+    bool save_depth_csv = false;
     int csv_sampling_step = 5;
     std::string binary_filename = "depth_data.bin";
     

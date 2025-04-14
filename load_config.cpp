@@ -74,6 +74,7 @@ bool LoadConfig::loadFromFile(const std::string& filename) {
         if (yaml["save_depth_raw"]) save_depth_raw = yaml["save_depth_raw"].as<bool>();
         if (yaml["save_depth_binary"]) save_depth_binary = yaml["save_depth_binary"].as<bool>();
         if (yaml["save_infrared"]) save_infrared = yaml["save_infrared"].as<bool>();
+        if (yaml["save_depth_csv"]) save_depth_csv = yaml["save_depth_csv"].as<bool>();
         if (yaml["csv_sampling_step"]) csv_sampling_step = yaml["csv_sampling_step"].as<int>();
         if (yaml["binary_filename"]) binary_filename = yaml["binary_filename"].as<std::string>();
         

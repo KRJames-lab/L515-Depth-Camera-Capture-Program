@@ -4,10 +4,6 @@
 #include <iomanip>
 #include <sys/stat.h>
 
-#ifdef _WIN32
-#include <direct.h>  // Windows _mkdir function
-#endif
-
 // Function to check if directory exists
 bool dirExists(const std::string& path) {
     struct stat info;
@@ -16,11 +12,7 @@ bool dirExists(const std::string& path) {
 
 // Function to create directory
 bool createDir(const std::string& path) {
-#ifdef _WIN32
-    return _mkdir(path.c_str()) == 0;
-#else
     return mkdir(path.c_str(), 0755) == 0;
-#endif
 }
 
 // Constructor
@@ -232,14 +224,73 @@ bool Processor::saveDepthData() {
             std::string binary_path = output_dir + config.getBinaryFilename();
             
             if (config.getFloatPrecision() == 64) {
-                return saveDepthBinary<double>(depth_meters, binary_path);
+                saveDepthBinary<double>(depth_meters, binary_path);
             } else {
-                return saveDepthBinary<float>(depth_meters, binary_path);
+                saveDepthBinary<float>(depth_meters, binary_path);
             }
+        }
+        
+        // Save depth map as image
+        if (config.saveDepthMap()) {
+            // Normalize depth data for visualization (0-255)
+            cv::Mat depth_normalized;
+            double min_val = 0, max_val = 0;
+            
+            // Find min/max values for normalization
+            cv::minMaxLoc(depth_meters, &min_val, &max_val);
+            
+            // Convert to 8-bit for visualization
+            depth_meters.convertTo(depth_normalized, CV_8UC1, 255.0 / (max_val - min_val), -min_val * 255.0 / (max_val - min_val));
+            
+            // Apply colormap for better visualization
+            cv::Mat depth_colormap;
+            cv::applyColorMap(depth_normalized, depth_colormap, cv::COLORMAP_JET);
+            
+            // Save the image
+            std::string image_path = output_dir + "depth_map.png";
+            cv::imwrite(image_path, depth_colormap);
+            std::cout << "Depth map image saved: " << image_path << std::endl;
         }
         
         // Print depth map info
         printDepthInfo();
+        
+        // Save depth data to CSV
+        if (config.saveDepthCsv()) {
+            std::string csv_path = output_dir + "depth_data.csv";
+            std::ofstream csv_file(csv_path);
+            
+            if (!csv_file.is_open()) {
+                std::cerr << "Cannot open CSV file: " << csv_path << std::endl;
+                return false;
+            }
+            
+            // Get sampling step to reduce file size
+            int step = config.getCsvSamplingStep();
+            if (step < 1) step = 1;
+            
+            // Write CSV header
+            csv_file << "x,y,depth_m" << std::endl;
+            
+            // Write depth data
+            for (int y = 0; y < depth_meters.rows; y += step) {
+                for (int x = 0; x < depth_meters.cols; x += step) {
+                    float depth_value;
+                    if (depth_meters.type() == CV_32F) {
+                        depth_value = depth_meters.at<float>(y, x);
+                    } else {
+                        depth_value = (float)depth_meters.at<double>(y, x);
+                    }
+                    
+                    // 모든 픽셀 저장 (조건문 제거)
+                    csv_file << x << "," << y << "," << depth_value << std::endl;
+                }
+            }
+            
+            csv_file.close();
+            std::cout << "Depth data CSV saved: " << csv_path << std::endl;
+            std::cout << "  - Sampling step: " << step << std::endl;
+        }
         
         return true;
     }

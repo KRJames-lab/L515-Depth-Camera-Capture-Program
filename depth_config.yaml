@@ -26,10 +26,11 @@ enable_infrared: false    # Infrared stream
 enable_confidence: false  # Confidence stream (L515 only)
 
 # Output settings
-save_color_image: false    # Save color image
-save_depth_map: false     # Save depth map image
-save_depth_raw: false     # Save raw depth data
+save_color_image: true    # Save color image
+save_depth_map: true     # Save depth map image
+save_depth_raw: true     # Save raw depth data
 save_depth_binary: true   # Save depth data in binary format
-save_infrared: false      # Save infrared image
+save_infrared: true      # Save infrared image
+save_depth_csv: true     # Save depth data as CSV
 binary_filename: "depth_data.bin"  # Binary file name
 csv_sampling_step: 5      # Sampling step for CSV saving
