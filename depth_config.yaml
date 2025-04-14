@@ -1,0 +1,35 @@
+# L515 Depth Camera Configuration File
+
+# Camera resolution settings
+depth_width: 1024
+depth_height: 768
+color_width: 1920 
+color_height: 1080
+fps: 30
+
+# Format settings
+depth_format: "Z16"  # Depth format (Z16 only supported)
+color_format: "RGB8" # Color format (RGB8, BGR8, etc. supported)
+
+# Output directory
+output_dir: "../result" # Save to parent directory 
+
+# Data format settings
+float_precision: 32  # Floating point precision: 32 or 64 bits
+
+# Performance settings
+num_threads: 0       # OpenMP thread count (0=auto)
+use_direct_access: true  # Use direct memory access (better performance)
+
+# Additional stream enable options
+enable_infrared: false    # Infrared stream
+enable_confidence: false  # Confidence stream (L515 only)
+
+# Output settings
+save_color_image: false    # Save color image
+save_depth_map: false     # Save depth map image
+save_depth_raw: false     # Save raw depth data
+save_depth_binary: true   # Save depth data in binary format
+save_infrared: false      # Save infrared image
+binary_filename: "depth_data.bin"  # Binary file name
+csv_sampling_step: 5      # Sampling step for CSV saving
