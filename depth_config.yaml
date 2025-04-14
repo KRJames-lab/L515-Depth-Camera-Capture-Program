@@ -28,9 +28,28 @@ enable_confidence: false  # Confidence stream (L515 only)
 # Output settings
 save_color_image: true    # Save color image
 save_depth_map: true     # Save depth map image
-save_depth_raw: true     # Save raw depth data
+save_depth_raw: false     # Save raw depth data
 save_depth_binary: true   # Save depth data in binary format
-save_infrared: true      # Save infrared image
-save_depth_csv: true     # Save depth data as CSV
+save_infrared: false      # Save infrared image
+save_depth_csv: false     # Save depth data as CSV
 binary_filename: "depth_data.bin"  # Binary file name
 csv_sampling_step: 5      # Sampling step for CSV saving
+
+# --- Advanced Camera Options ---
+# Consult Intel RealSense SDK documentation for L515 specific ranges and details.
+laser_power: 100.0          # Laser power range: 0.0~100.0 (0: minimum, 100: maximum)
+confidence_threshold: 3    # Depth confidence threshold (0: low, 3: high)
+receiver_gain: 16.0        # Receiver gain range: 0.0~16.0 (sensitivity improvement)
+post_processing_sharpening: 1.0 # Post-processing edge sharpness range: 0.0~8.0
+pre_processing_sharpening: 1.0 # Pre-processing edge sharpness range: 0.0~8.0
+noise_filtering: 4.0        # Depth noise filtering level range: 0.0~8.0
+invalidation_bypass: false  # Confidence threshold bypass (0: disabled, 1: enabled)
+inter_cam_sync_mode: 0     # Camera sync mode (0: non-synchronized, 1: master, 2: slave)
+depth_offset: 0.0          # Depth measurement offset range: -10.0~10.0
+freefall_detection_enabled: true # Free-fall detection using IMU (0: disabled, 1: enabled)
+camera_accuracy_health_enabled: true # Camera accuracy monitoring (0: disabled, 1: enabled)
+ambient_light: 0           # Ambient light setting (0: No Ambient, 1: Low Ambient)
+zero_order_enabled: false  # Filtering for 50cm+ objects (0: disabled, 1: enabled)
+emitter_enabled: 1         # Laser emitter control (0: off, 1: on, 2: auto)
+global_time_enabled: true  # Timestamp synchronization (0: disabled, 1: enabled)
+visual_preset: 4           # Preset (0: Custom, 1: No Ambient, 2: Low Ambient, 3: Max Range, 4: Short Range)

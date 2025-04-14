@@ -58,7 +58,12 @@ private:
     
     // Flag indicating if device is L515
     bool is_l515 = false;
+    bool pipeline_started = false; // Flag to track if pipeline was started
     
     // Check for L515 device (private helper function)
     bool checkL515Device(const rs2::device& dev);
+
+    // Helper function to apply sensor options
+    template <typename T>
+    void applyOption(rs2::sensor& sensor, rs2_option option, T value, const std::string& option_name);
 }; 

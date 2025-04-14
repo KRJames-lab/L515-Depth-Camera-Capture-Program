@@ -9,10 +9,12 @@ This program is a C++ application that captures and saves depth maps and color i
 - YAML-based configuration file
 - Parallel processing optimization using OpenMP
 - Direct memory access option
+- Advanced RealSense camera options control (laser power, visual presets, etc.)
+- Infrared and confidence stream support
 
 ## System Requirements
 
-- C++14 compatible compiler or higher
+- C++17 compatible compiler or higher
 - CMake 3.10 or higher
 - librealsense2 SDK [(version 2.35.2 recommended)](https://dev.intelrealsense.com/docs/firmware-update-tool)
 - OpenCV library (version 4.0 or higher recommended)
@@ -65,6 +67,23 @@ num_threads: 8       # Number of OpenMP threads to use
 All configuration options are detailed in the `depth_config.yaml` file.
 
 **Get enable settings with command "rs-enumerate-devices"**
+
+### Advanced Camera Options
+
+The configuration file also allows fine-tuning of various L515 camera options:
+
+```yaml
+# Camera control options
+laser_power: 100.0          # Laser power range: 0.0~100.0
+confidence_threshold: 1     # Depth confidence threshold (0: low, 3: high)
+receiver_gain: 16.0         # Receiver gain range: 0.0~16.0
+noise_filtering: 4.0        # Depth noise filtering level range: 0.0~8.0
+visual_preset: 0            # Preset modes (0: Custom, 3: Max Range, 4: Short Range)
+```
+
+These options allow you to optimize depth quality for different environments and use cases. For example, increase laser power for better long-range performance, adjust noise filtering for cleaner depth maps, or use presets for specific scenarios.
+
+Please refer to the [**User Guide**](https://support.intelrealsense.com/hc/en-us/articles/360051646094-Intel-RealSense-LiDAR-Camera-L515-User-Guide) for more information.
 
 ## Notes
 

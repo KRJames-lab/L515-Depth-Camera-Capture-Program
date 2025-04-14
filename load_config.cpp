@@ -1,4 +1,5 @@
 #include "load_config.h"
+#include <limits> // Required for numeric_limits
 
 // Initialize static member
 std::map<std::string, rs2_format> LoadConfig::format_map = {
@@ -78,6 +79,21 @@ bool LoadConfig::loadFromFile(const std::string& filename) {
         if (yaml["csv_sampling_step"]) csv_sampling_step = yaml["csv_sampling_step"].as<int>();
         if (yaml["binary_filename"]) binary_filename = yaml["binary_filename"].as<std::string>();
         
+        // --- Load Advanced Camera Options ---
+        if (yaml["laser_power"]) laser_power = yaml["laser_power"].as<float>();
+        if (yaml["confidence_threshold"]) confidence_threshold = yaml["confidence_threshold"].as<int>();
+        if (yaml["min_distance"]) min_distance = yaml["min_distance"].as<float>(); // Note: Usually read-only
+        if (yaml["receiver_gain"]) receiver_gain = yaml["receiver_gain"].as<float>();
+        if (yaml["post_processing_sharpening"]) post_processing_sharpening = yaml["post_processing_sharpening"].as<float>();
+        if (yaml["noise_filtering"]) noise_filtering = yaml["noise_filtering"].as<float>();
+        if (yaml["invalidation_bypass"]) invalidation_bypass = yaml["invalidation_bypass"].as<bool>();
+        if (yaml["enable_error_polling"]) enable_error_polling = yaml["enable_error_polling"].as<bool>();
+        if (yaml["inter_cam_sync_mode"]) inter_cam_sync_mode = yaml["inter_cam_sync_mode"].as<int>();
+        if (yaml["freefall_detection_enabled"]) freefall_detection_enabled = yaml["freefall_detection_enabled"].as<bool>();
+        if (yaml["emitter_enabled"]) emitter_enabled = yaml["emitter_enabled"].as<int>();
+        if (yaml["visual_preset"]) visual_preset = yaml["visual_preset"].as<int>();
+        if (yaml["global_time_enabled"]) global_time_enabled = yaml["global_time_enabled"].as<bool>();
+
         std::cout << "YAML configuration loaded: " << filename << std::endl;
         return true;
     }

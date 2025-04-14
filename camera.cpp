@@ -1,14 +1,58 @@
 #include "camera.h"
 #include <iostream>
+#include <vector> // Needed for querying sensors
 
 Camera::Camera(const LoadConfig& config) : config(config) {
 }
 
 Camera::~Camera() {
     try {
-        pipe.stop();
+        if (pipeline_started) { // Check if pipeline was started using the flag
+             pipe.stop();
+        }
     } catch (const rs2::error& e) {
         std::cerr << "Error shutting down camera: " << e.what() << std::endl;
+    } catch (...) {
+        // Catch any other exceptions during cleanup
+        std::cerr << "Unknown error during camera shutdown." << std::endl;
+    }
+}
+
+// Helper function to apply options
+template <typename T>
+void Camera::applyOption(rs2::sensor& sensor, rs2_option option, T value, const std::string& option_name) {
+    try {
+        if (sensor.supports(option)) {
+            // Check if option is read-only BEFORE trying to set it
+             if (sensor.is_option_read_only(option)) {
+                 std::cout << "  Option '" << option_name << "' is read-only." << std::endl;
+             } else {
+                 // Use as_option() to handle potential type issues more robustly if needed,
+                 // but set_option(float) is generally used. Cast booleans to float (0.0/1.0).
+                 float float_value;
+                 if constexpr (std::is_same_v<T, bool>) {
+                     float_value = value ? 1.0f : 0.0f;
+                 } else {
+                     float_value = static_cast<float>(value);
+                 }
+
+                 sensor.set_option(option, float_value);
+                 // Optionally, read back the value to confirm
+                 // float read_value = sensor.get_option(option);
+                 // std::cout << "  Set " << option_name << " to " << value << " (Read back: " << read_value << ")" << std::endl;
+                 std::cout << "  Set " << option_name << " to " << value << std::endl;
+             }
+        } else {
+            std::cout << "  Option '" << option_name << "' not supported by this sensor." << std::endl;
+        }
+    } catch (const rs2::invalid_value_error& e) {
+        std::cerr << "  Failed to set " << option_name << " to " << value << ". Invalid value: " << e.what() << std::endl;
+    } catch (const rs2::wrong_api_call_sequence_error& e) {
+         std::cerr << "  Failed to set " << option_name << ". API call sequence error: " << e.what() << std::endl;
+    } catch (const rs2::error& e) {
+        std::cerr << "  Failed to set " << option_name << ": " << e.what() << std::endl;
+    } catch (const std::exception& e) {
+         std::cerr << "  Error setting " << option_name << ": " << e.what() << std::endl;
     }
 }
 
@@ -82,13 +126,59 @@ bool Camera::initialize() {
                       << " @ " << config.getFps() << "fps, format: RAW8" << std::endl;
         }
 
-        // Start streaming
+        // Start streaming - BEFORE setting most options
+        // Some options might require the stream to be active, others must be set before.
+        // It's generally safer to set options AFTER starting the pipeline and getting the sensor.
         rs2::pipeline_profile profile = pipe.start(rs_config);
-        
-        // Get depth scale
-        depth_scale = profile.get_device().first<rs2::depth_sensor>().get_depth_scale();
-        std::cout << "Depth scale: " << depth_scale << " meters/unit" << std::endl;
-        
+        pipeline_started = true; // Set flag after successful start
+        rs2::device device = profile.get_device();
+
+        // --- Apply Advanced Camera Options ---
+        // Get the depth sensor (L515 options are primarily on the depth sensor)
+        std::vector<rs2::sensor> sensors = device.query_sensors();
+        rs2::sensor depth_sensor; // Use a generic sensor object
+        for(const auto& s : sensors) {
+             // Check if it's a depth sensor - safer than just device.first<rs2::depth_sensor>()
+             if (s.is<rs2::depth_sensor>()) {
+                 depth_sensor = s;
+                 break;
+             }
+        }
+
+        if (!depth_sensor) {
+            std::cerr << "Could not find depth sensor for applying options!" << std::endl;
+            // Decide if this is fatal or not
+        } else {
+             std::cout << "\nApplying advanced camera options..." << std::endl;
+             // Apply options using the helper function
+             applyOption(depth_sensor, RS2_OPTION_LASER_POWER, config.getLaserPower(), "Laser Power");
+             applyOption(depth_sensor, RS2_OPTION_CONFIDENCE_THRESHOLD, config.getConfidenceThreshold(), "Confidence Threshold");
+             // applyOption(depth_sensor, RS2_OPTION_MIN_DISTANCE, config.getMinDistance(), "Min Distance"); // Read-Only
+             applyOption(depth_sensor, RS2_OPTION_GAIN, config.getReceiverGain(), "Receiver Gain");
+             applyOption(depth_sensor, RS2_OPTION_POST_PROCESSING_SHARPENING, config.getPostProcessingSharpening(), "Post Processing Sharpening");
+             applyOption(depth_sensor, RS2_OPTION_NOISE_FILTERING, config.getNoiseFiltering(), "Noise Filtering");
+             applyOption(depth_sensor, RS2_OPTION_INVALIDATION_BYPASS, config.getInvalidationBypass(), "Invalidation Bypass");
+             // Error polling option not available in this SDK version
+             // applyOption(depth_sensor, RS2_OPTION_ENABLE_ERROR_POLLING, config.getEnableErrorPolling(), "Error Polling Enabled");
+             applyOption(depth_sensor, RS2_OPTION_INTER_CAM_SYNC_MODE, config.getInterCamSyncMode(), "Inter Cam Sync Mode");
+             applyOption(depth_sensor, RS2_OPTION_FREEFALL_DETECTION_ENABLED, config.getFreefallDetectionEnabled(), "Freefall Detection Enabled");
+             applyOption(depth_sensor, RS2_OPTION_EMITTER_ENABLED, config.getEmitterEnabled(), "Emitter Enabled");
+             applyOption(depth_sensor, RS2_OPTION_VISUAL_PRESET, config.getVisualPreset(), "Visual Preset");
+             applyOption(depth_sensor, RS2_OPTION_GLOBAL_TIME_ENABLED, config.getGlobalTimeEnabled(), "Global Time Enabled");
+
+             // Add checks for other sensors (e.g., color sensor options) if needed
+             std::cout << "Finished applying options.\n" << std::endl;
+        }
+
+        // Get depth scale (AFTER potentially setting options that might affect it, though unlikely)
+        if (depth_sensor && depth_sensor.is<rs2::depth_sensor>()) {
+            depth_scale = depth_sensor.as<rs2::depth_sensor>().get_depth_scale();
+             std::cout << "Depth scale: " << depth_scale << " meters/unit" << std::endl;
+        } else {
+             std::cerr << "Could not get depth scale." << std::endl;
+             // Handle error? Use a default?
+        }
+
         // Wait for 1 second and capture frames (camera stabilization)
         for (int i = 0; i < config.getFps(); i++) {
             pipe.wait_for_frames();
@@ -97,11 +187,14 @@ bool Camera::initialize() {
         return true;
     }
     catch (const rs2::error& e) {
-        std::cerr << "RealSense initialization error: " << e.what() << " (" << e.get_failed_function() << ")" << std::endl;
+        std::cerr << "RealSense initialization error: " << e.what() << " (" << e.get_failed_function() << ") - " << e.get_failed_args() << std::endl;
+        // Stop pipeline if it was started before the error
+         try { if(pipeline_started) pipe.stop(); } catch(...) {}
         return false;
     }
     catch (const std::exception& e) {
         std::cerr << "Initialization error: " << e.what() << std::endl;
+         try { if(pipeline_started) pipe.stop(); } catch(...) {}
         return false;
     }
 }
